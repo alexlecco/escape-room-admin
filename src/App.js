@@ -8,6 +8,7 @@ export default class App extends Component {
     super(props)
     this.state = {
       time: 0,
+      isActive: false,
       isPaused: false
     }
 
@@ -26,11 +27,19 @@ export default class App extends Component {
     }.bind(this))
   }
 
-  sendStart() { this.room1Ref.update({ 'start': true }) }
+  sendStart() {
+    this.room1Ref.update({ 'start': true })
+    this.setState({ isActive: true })
+  }
   
-  sendReset() { this.room1Ref.update({ 'start': false, 'isPenalized': false, 'isPaused': false }) }
+  sendReset() {
+    this.room1Ref.update({ 'start': false, 'isPenalized': false, 'isPaused': false })
+    this.setState({ isActive: false })
+  }
   
-  sendPenalize() { this.room1Ref.update({ 'isPenalized': true }) } 
+  sendPenalize() {
+    this.room1Ref.update({ 'isPenalized': true })
+  } 
 
   sendPause() {
     const { isPaused } = this.state
@@ -45,7 +54,7 @@ export default class App extends Component {
   myCallback() { console.log('tiempo cumplido') } 
 
   render() {
-    const { time, isPaused } = this.state
+    const { time, isPaused, isActive } = this.state
     const buttonStyle = {marginRight: 20, marginBottom: 20, width: 130, height: 50}
     const buttonStylePressed = {marginRight: 20, marginBottom: 20, width: 130, height: 50, color: '#fff', backgroundColor: '#2e2e2e'}
     const pauseButtonStyle = isPaused ? buttonStylePressed : buttonStyle
@@ -75,9 +84,14 @@ export default class App extends Component {
   
           <div style={buttonsContainerStyle}>
             <button style={buttonStyle} onClick={handleSendStart}> iniciar </button>
-            <button style={pauseButtonStyle} onClick={handleSendPause}> {pauseText} </button>
-            <button style={buttonStyle} onClick={handleSendReset}> reiniciar </button>
-            <button style={buttonStyle} onClick={handleSendPenalize}> penalizar </button>
+            {
+              isActive &&
+              <> 
+                <button style={pauseButtonStyle} onClick={handleSendPause}> {pauseText} </button>
+                <button style={buttonStyle} onClick={handleSendReset}> reiniciar </button>
+                <button style={buttonStyle} onClick={handleSendPenalize}> penalizar </button>
+              </>
+            }
           </div>
         </header>
       </div>

@@ -9,7 +9,8 @@ export default class App extends Component {
     this.state = {
       time: 0,
       isActive: false,
-      isPaused: false
+      isPaused: false,
+      isPenalized: false
     }
 
     this.room1Ref = firebase.firestore().collection('room1').doc('glYViwyAivdHSVtoljZN')
@@ -17,6 +18,10 @@ export default class App extends Component {
 
   componentDidMount() {
     this.listenUpdater(this.room1Ref)
+  }
+
+  componentWillUnmount() {
+    this.room1Ref.update({ 'start': false, 'isPenalized': false, 'isPaused': false })
   }
 
   listenUpdater(ref) {
@@ -29,7 +34,7 @@ export default class App extends Component {
 
   sendStart() {
     this.room1Ref.update({ 'start': true })
-    this.setState({ isActive: true })
+    this.setState({ isActive: true, isPenalized: false })
   }
   
   sendReset() {
@@ -39,6 +44,7 @@ export default class App extends Component {
   
   sendPenalize() {
     this.room1Ref.update({ 'isPenalized': true })
+    this.setState({ isPenalized: true })
   } 
 
   sendPause() {
@@ -54,10 +60,11 @@ export default class App extends Component {
   myCallback() { console.log('tiempo cumplido') } 
 
   render() {
-    const { time, isPaused, isActive } = this.state
+    const { time, isPaused, isActive, isPenalized } = this.state
     const buttonStyle = {marginRight: 20, marginBottom: 20, width: 130, height: 50}
-    const buttonStylePressed = {marginRight: 20, marginBottom: 20, width: 130, height: 50, color: '#fff', backgroundColor: '#2e2e2e'}
-    const pauseButtonStyle = isPaused ? buttonStylePressed : buttonStyle
+    const buttonPressedStyle = {marginRight: 20, marginBottom: 20, width: 130, height: 50, color: '#fff', backgroundColor: '#2e2e2e'}
+    const pauseButtonStyle = isPaused ? buttonPressedStyle : buttonStyle
+    const penalizeButtonStyle = isPenalized ? buttonPressedStyle : buttonStyle
     const buttonsContainerStyle = {display: 'flex', flexDirection: 'column', marginTop: 20}
     const pauseText = isPaused ? 'quitar pausa' : 'pausar'
     const handleSendStart = () => this.sendStart()
@@ -70,7 +77,7 @@ export default class App extends Component {
         <header className='App-header'>
           <h1> Escape Room Tucumán </h1>
           <h2> ADMIN </h2>
-          <p> tiempo restante: </p>
+          {isActive && <p> tiempo restante: </p>}
           <div style={{textAlign: 'left'}}>
             <ReactCountdownClock
               seconds={time}
@@ -83,14 +90,19 @@ export default class App extends Component {
           </div>
   
           <div style={buttonsContainerStyle}>
-            <button style={buttonStyle} onClick={handleSendStart}> iniciar </button>
             {
-              isActive &&
-              <> 
-                <button style={pauseButtonStyle} onClick={handleSendPause}> {pauseText} </button>
-                <button style={buttonStyle} onClick={handleSendReset}> reiniciar </button>
-                <button style={buttonStyle} onClick={handleSendPenalize}> penalizar </button>
-              </>
+              isActive ?
+              (
+                <> 
+                  <button style={pauseButtonStyle} onClick={handleSendPause}> {pauseText} </button>
+                  <button style={buttonStyle} onClick={handleSendReset}> reiniciar </button>
+                  <button style={penalizeButtonStyle} onClick={handleSendPenalize}> penalizar </button>
+                </>
+              )
+              :
+              (
+                <button style={buttonStyle} onClick={handleSendStart}> iniciar </button>
+              )
             }
           </div>
         </header>
